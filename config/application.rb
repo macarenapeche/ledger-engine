@@ -45,5 +45,9 @@ module LedgerEngine
     # Use SQL schema dumps so DB-level triggers/functions (the ledger invariants)
     # survive schema:load. schema.rb cannot represent them.
     config.active_record.schema_format = :sql
+
+    # Run background jobs through Sidekiq. Test env overrides this to :test (see test.rb)
+    # so specs and CI don't need a Redis server.
+    config.active_job.queue_adapter = :sidekiq
   end
 end
