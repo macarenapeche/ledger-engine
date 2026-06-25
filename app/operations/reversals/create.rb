@@ -4,7 +4,8 @@ module Reversals
   # original was balanced, the reversal is balanced too.
   #
   # Reverse-once: the idempotency key is derived from the original id, so reversing the same
-  # entry twice returns the first reversal instead of posting a second one.
+  # entry twice returns the first reversal instead of posting a second one. A reversal entry
+  # itself cannot be reversed, so chains are capped at one level (original -> reversal).
   class Create
     FLIP = { "debit" => "credit", "credit" => "debit" }.freeze
 
@@ -15,6 +16,11 @@ module Reversals
     end
 
     def call
+      if original.metadata["reverses"].present?
+        raise Ledger::IrreversibleEntry,
+          "entry #{original.id} is itself a reversal (of #{original.metadata['reverses']}) and cannot be reversed"
+      end
+
       Ledger::PostEntry.call(
         description: "reversal of entry #{original.id}",
         currency: original.currency,

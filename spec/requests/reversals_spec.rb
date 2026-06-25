@@ -26,4 +26,10 @@ RSpec.describe "POST /journal_entries/:id/reversals", type: :request do
     post "/journal_entries/999999/reversals"
     expect(response).to have_http_status(:not_found)
   end
+
+  it "returns 422 when trying to reverse a reversal" do
+    reversal = Reversals::Create.call(entry)
+    post "/journal_entries/#{reversal.id}/reversals"
+    expect(response).to have_http_status(:unprocessable_entity)
+  end
 end

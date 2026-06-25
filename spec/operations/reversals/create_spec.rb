@@ -49,4 +49,22 @@ RSpec.describe Reversals::Create do
     described_class.call(original)
     expect(w1.balance).to eq(-10_000) # correction always posts
   end
+
+  it "refuses to reverse a reversal — chains are capped at one level" do
+    reversal = described_class.call(original)
+    expect { described_class.call(reversal) }.to raise_error(Ledger::IrreversibleEntry)
+  end
+
+  it "lets you re-apply via a fresh entry instead of un-reversing" do
+    described_class.call(original)
+    expect(w1.balance).to eq(0)
+
+    # re-apply the effect as a brand-new entry (which is itself reversible once)
+    reapplied = Ledger::PostEntry.call(description: "re-fund", currency: "EUR", lines: [
+      { account: cash, direction: "debit",  amount: 10_000 },
+      { account: w1,   direction: "credit", amount: 10_000 }
+    ])
+    expect(w1.balance).to eq(10_000)
+    expect { described_class.call(reapplied) }.not_to raise_error
+  end
 end
