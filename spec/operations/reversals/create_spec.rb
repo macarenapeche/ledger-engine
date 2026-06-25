@@ -1,0 +1,52 @@
+require "rails_helper"
+
+RSpec.describe Reversals::Create do
+  let(:cash) { account!("cash", normal: "debit") }
+  let(:w1)   { account!("wallet_1_eur", holder: "wallet_1") }
+
+  let(:original) do
+    Ledger::PostEntry.call(description: "fund", currency: "EUR", lines: [
+      { account: cash, direction: "debit",  amount: 10_000 },
+      { account: w1,   direction: "credit", amount: 10_000 }
+    ])
+  end
+
+  it "posts the mirror: directions flipped, amounts unchanged" do
+    reversal = described_class.call(original)
+    expect(reversal.postings.map { [ _1.account_id, _1.direction, _1.amount ] }).to contain_exactly(
+      [ cash.id, "credit", 10_000 ],
+      [ w1.id,   "debit",  10_000 ],
+    )
+  end
+
+  it "restores balances to where they were before the original" do
+    original
+    expect(w1.balance).to eq(10_000)
+    described_class.call(original)
+    expect(w1.balance).to eq(0)
+    expect(cash.balance).to eq(0)
+  end
+
+  it "records the link back to the reversed entry" do
+    reversal = described_class.call(original)
+    expect(reversal.metadata["reverses"]).to eq(original.id)
+  end
+
+  it "is reverse-once: reversing twice returns the same reversal, no double-undo" do
+    first  = described_class.call(original)
+    second = described_class.call(original)
+    expect(second.id).to eq(first.id)
+    expect(w1.balance).to eq(0) # not +10_000 again
+  end
+
+  it "still posts when the reversal drives a balance negative" do
+    original
+    # spend everything out of w1 so reversing the funding must go negative
+    w2 = account!("wallet_2_eur", holder: "wallet_2")
+    Transfers::Create.call(from: "wallet_1", to: "wallet_2", amount: 10_000, currency: "EUR")
+    expect(w1.balance).to eq(0)
+
+    described_class.call(original)
+    expect(w1.balance).to eq(-10_000) # correction always posts
+  end
+end

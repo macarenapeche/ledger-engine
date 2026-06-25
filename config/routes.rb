@@ -6,6 +6,9 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   resources :transfers, only: :create
+  resources :journal_entries, only: [] do
+    resources :reversals, only: :create
+  end
   resources :accounts, only: %i[create show], param: :external_id do
     get :balance, on: :member
   end
