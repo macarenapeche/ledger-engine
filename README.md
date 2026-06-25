@@ -64,11 +64,18 @@ POST /transfers
 Idempotency-Key: req_abc            # optional; retries are safe
 { "from": "wallet_1", "to": "wallet_2", "amount": 100, "currency": "EUR" }
 
+POST /journal_entries/:id/reversals  # undo an entry by posting its mirror (idempotent per entry)
+
 POST /accounts                       # { external_id, holder_ref, name, currency, normal_balance }
 GET  /accounts/:external_id
 GET  /accounts/:external_id/balance
 GET  /reconciliation                 # trial balance per currency
 ```
+
+A **reversal** is how you correct an immutable ledger: instead of editing history, you post
+a new entry that mirrors the original (each leg's debit/credit flipped, amounts unchanged).
+It's reverse-once (idempotent per entry) and always posts — even if it drives a balance
+negative — because a correction must never be blocked.
 
 `amount` is in minor units. Internally a transfer becomes: **debit** the source wallet,
 **credit** the destination, as one balanced journal entry.
@@ -127,6 +134,7 @@ bundle exec rspec          # 16 examples, incl. DB-level invariant proofs
 - Idempotency keys replay instead of double-posting.
 - Transfers refuse to overdraw a wallet (row-locked balance check).
 - The trial balance nets to zero per currency; snapshots reconcile against later postings.
+- Reversals mirror an entry, restore balances, are reverse-once, and post even into negative.
 
 ## Deliberately out of scope
 

@@ -72,7 +72,7 @@ CREATE TABLE public.accounts (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     CONSTRAINT accounts_currency_iso CHECK (((currency)::text ~ '^[A-Z]{3}$'::text)),
-    CONSTRAINT accounts_normal_balance_valid CHECK (((normal_balance)::text = ANY ((ARRAY['debit'::character varying, 'credit'::character varying])::text[])))
+    CONSTRAINT accounts_normal_balance_valid CHECK (((normal_balance)::text = ANY (ARRAY[('debit'::character varying)::text, ('credit'::character varying)::text])))
 );
 
 
@@ -155,6 +155,8 @@ CREATE TABLE public.journal_entries (
     metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
+    reverses_entry_id bigint,
+    originator_id bigint,
     CONSTRAINT journal_entries_currency_iso CHECK (((currency)::text ~ '^[A-Z]{3}$'::text))
 );
 
@@ -196,7 +198,7 @@ CASE
     ELSE (- amount)
 END) STORED,
     CONSTRAINT postings_amount_positive CHECK ((amount > 0)),
-    CONSTRAINT postings_direction_valid CHECK (((direction)::text = ANY ((ARRAY['debit'::character varying, 'credit'::character varying])::text[])))
+    CONSTRAINT postings_direction_valid CHECK (((direction)::text = ANY (ARRAY[('debit'::character varying)::text, ('credit'::character varying)::text])))
 );
 
 
@@ -340,6 +342,27 @@ CREATE UNIQUE INDEX index_journal_entries_on_idempotency_key ON public.journal_e
 
 
 --
+-- Name: index_journal_entries_on_originator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_journal_entries_on_originator_id ON public.journal_entries USING btree (originator_id);
+
+
+--
+-- Name: index_journal_entries_on_reverses_entry_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_journal_entries_on_reverses_entry_id ON public.journal_entries USING btree (reverses_entry_id);
+
+
+--
+-- Name: index_journal_entries_one_reversal_per_entry; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_journal_entries_one_reversal_per_entry ON public.journal_entries USING btree (reverses_entry_id) WHERE (reverses_entry_id IS NOT NULL);
+
+
+--
 -- Name: index_postings_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -390,11 +413,27 @@ ALTER TABLE ONLY public.postings
 
 
 --
+-- Name: journal_entries fk_rails_5685e80cec; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.journal_entries
+    ADD CONSTRAINT fk_rails_5685e80cec FOREIGN KEY (originator_id) REFERENCES public.journal_entries(id);
+
+
+--
 -- Name: postings fk_rails_9e48d90554; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.postings
     ADD CONSTRAINT fk_rails_9e48d90554 FOREIGN KEY (journal_entry_id) REFERENCES public.journal_entries(id);
+
+
+--
+-- Name: journal_entries fk_rails_a76617785a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.journal_entries
+    ADD CONSTRAINT fk_rails_a76617785a FOREIGN KEY (reverses_entry_id) REFERENCES public.journal_entries(id);
 
 
 --
@@ -412,6 +451,8 @@ ALTER TABLE ONLY public.balance_snapshots
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260625000007'),
+('20260625000006'),
 ('20260625000005'),
 ('20260625000004'),
 ('20260625000003'),
