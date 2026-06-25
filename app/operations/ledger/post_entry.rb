@@ -52,7 +52,7 @@ module Ledger
       raise UnbalancedEntry, "debits (#{debits}) != credits (#{credits})" unless debits == credits
       raise UnbalancedEntry, "need at least 2 postings" if lines.size < 2
 
-      mismatched = lines.map { _1.account.currency }.uniq - [currency]
+      mismatched = lines.map { _1.account.currency }.uniq - [ currency ]
       raise CurrencyMismatch, "all postings must be in #{currency}" unless mismatched.empty?
     end
 

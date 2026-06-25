@@ -22,7 +22,7 @@ Ledger::PostEntry.call(
   description: "fund wallet_1", currency: "EUR", idempotency_key: "seed-fund-wallet_1",
   lines: [
     { account: cash,         direction: "debit",  amount: 10_000 },
-    { account: wallet_1_eur, direction: "credit", amount: 10_000 },
+    { account: wallet_1_eur, direction: "credit", amount: 10_000 }
   ]
 )
 

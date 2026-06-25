@@ -9,7 +9,7 @@ RSpec.describe "POST /transfers", type: :request do
     w1 = Account.find_by!(external_id: "wallet_1_eur")
     Ledger::PostEntry.call(description: "fund", currency: "EUR", lines: [
       { account: cash, direction: "debit", amount: 10_000 },
-      { account: w1,   direction: "credit", amount: 10_000 },
+      { account: w1,   direction: "credit", amount: 10_000 }
     ])
   end
 
