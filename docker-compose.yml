@@ -1,0 +1,56 @@
+# Local one-command demo of the full stack: Postgres + Redis + Rails API + Sidekiq worker.
+#   docker compose up --build
+#   curl localhost:3000/reconciliation
+# Runs the production image (the same Dockerfile Kamal would deploy) over plain HTTP.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    command: ["./bin/rails", "server", "-b", "0.0.0.0"]
+    ports:
+      - "3000:3000"
+    environment: &app_env
+      RAILS_ENV: production
+      # Demo-only secret; override in any real environment.
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-dummy_local_demo_secret_change_me}
+      DATABASE_URL: postgres://postgres:postgres@db:5432/ledger_engine_production
+      REDIS_URL: redis://redis:6379/0
+      FORCE_SSL: "false"        # plain HTTP for the local demo
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: ["bundle", "exec", "sidekiq"]
+    environment: *app_env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pg_data:

@@ -34,7 +34,8 @@ Rails.application.configure do
   # config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  # Defaults on; set FORCE_SSL=false to run the production image over plain HTTP (local docker demo).
+  config.force_ssl = ENV.fetch("FORCE_SSL", "true") == "true"
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
