@@ -72,7 +72,7 @@ CREATE TABLE public.accounts (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     CONSTRAINT accounts_currency_iso CHECK (((currency)::text ~ '^[A-Z]{3}$'::text)),
-    CONSTRAINT accounts_normal_balance_valid CHECK (((normal_balance)::text = ANY ((ARRAY['debit'::character varying, 'credit'::character varying])::text[])))
+    CONSTRAINT accounts_normal_balance_valid CHECK (((normal_balance)::text = ANY (ARRAY[('debit'::character varying)::text, ('credit'::character varying)::text])))
 );
 
 
@@ -198,7 +198,7 @@ CASE
     ELSE (- amount)
 END) STORED,
     CONSTRAINT postings_amount_positive CHECK ((amount > 0)),
-    CONSTRAINT postings_direction_valid CHECK (((direction)::text = ANY ((ARRAY['debit'::character varying, 'credit'::character varying])::text[])))
+    CONSTRAINT postings_direction_valid CHECK (((direction)::text = ANY (ARRAY[('debit'::character varying)::text, ('credit'::character varying)::text])))
 );
 
 

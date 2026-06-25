@@ -26,7 +26,8 @@ module LedgerEngine
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    # rubocop/ holds a custom cop loaded only by RuboCop, not the app — keep Zeitwerk off it.
+    config.autoload_lib(ignore: %w[assets tasks rubocop])
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -44,5 +45,9 @@ module LedgerEngine
     # Use SQL schema dumps so DB-level triggers/functions (the ledger invariants)
     # survive schema:load. schema.rb cannot represent them.
     config.active_record.schema_format = :sql
+
+    # Run background jobs through Sidekiq. Test env overrides this to :test (see test.rb)
+    # so specs and CI don't need a Redis server.
+    config.active_job.queue_adapter = :sidekiq
   end
 end
