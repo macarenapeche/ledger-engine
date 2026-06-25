@@ -91,6 +91,21 @@ Every money movement — transfers, funding, fees, reversals — goes through th
 
 ## Running it
 
+### Docker (one command)
+
+Brings up Postgres + Redis + the Rails API + a Sidekiq worker. Runs the **production
+image** (the same Dockerfile Kamal would deploy) over plain HTTP:
+
+```bash
+docker compose up --build
+curl localhost:3000/reconciliation        # {"balanced":true,"trial_balance":{"EUR":0}}
+curl localhost:3000/accounts/wallet_1_eur/balance
+```
+
+The web container runs `db:prepare` on boot (loads the schema incl. triggers, then seeds).
+
+### Locally
+
 Requires Ruby 3.4 and **PostgreSQL 16**.
 
 ```bash
