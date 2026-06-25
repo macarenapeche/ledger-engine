@@ -9,7 +9,7 @@ RSpec.describe Transfers::Create do
     # fund wallet_1 with 100.00
     Ledger::PostEntry.call(description: "fund", currency: "EUR", lines: [
       { account: cash, direction: "debit", amount: 10_000 },
-      { account: w1,   direction: "credit", amount: 10_000 },
+      { account: w1,   direction: "credit", amount: 10_000 }
     ])
   end
 

@@ -21,6 +21,6 @@ class CreatePostings < ActiveRecord::Migration[7.2]
         GENERATED ALWAYS AS (CASE WHEN direction = 'debit' THEN amount ELSE -amount END) STORED;
     SQL
 
-    add_index :postings, [:account_id, :id]     # fast balance scans / high-water-mark snapshots
+    add_index :postings, [ :account_id, :id ]     # fast balance scans / high-water-mark snapshots
   end
 end

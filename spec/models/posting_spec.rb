@@ -6,7 +6,7 @@ RSpec.describe Posting do
   let(:posting) do
     entry = Ledger::PostEntry.call(description: "fund", currency: "EUR", lines: [
       { account: cash,   direction: "debit",  amount: 100 },
-      { account: wallet, direction: "credit", amount: 100 },
+      { account: wallet, direction: "credit", amount: 100 }
     ])
     entry.postings.first
   end

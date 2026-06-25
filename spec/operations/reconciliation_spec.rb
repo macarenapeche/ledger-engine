@@ -8,7 +8,7 @@ RSpec.describe Reconciliation do
   it "trial balance is zero per currency in a closed ledger" do
     Ledger::PostEntry.call(description: "fund", currency: "EUR", lines: [
       { account: cash, direction: "debit", amount: 10_000 },
-      { account: w1,   direction: "credit", amount: 10_000 },
+      { account: w1,   direction: "credit", amount: 10_000 }
     ])
     Transfers::Create.call(from: "wallet_1", to: "wallet_2", amount: 2_500, currency: "EUR")
 
@@ -19,7 +19,7 @@ RSpec.describe Reconciliation do
   it "a snapshot reconciles against later postings" do
     Ledger::PostEntry.call(description: "fund", currency: "EUR", lines: [
       { account: cash, direction: "debit", amount: 10_000 },
-      { account: w1,   direction: "credit", amount: 10_000 },
+      { account: w1,   direction: "credit", amount: 10_000 }
     ])
     snap = BalanceSnapshots::Capture.call(w1)
     Transfers::Create.call(from: "wallet_1", to: "wallet_2", amount: 2_500, currency: "EUR")

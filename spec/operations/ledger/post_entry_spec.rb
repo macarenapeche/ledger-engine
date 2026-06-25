@@ -9,7 +9,7 @@ RSpec.describe Ledger::PostEntry do
       description: "fund", currency: "EUR", idempotency_key: key,
       lines: [
         { account: cash,   direction: "debit",  amount: },
-        { account: wallet, direction: "credit", amount: },
+        { account: wallet, direction: "credit", amount: }
       ]
     )
   end
@@ -24,7 +24,7 @@ RSpec.describe Ledger::PostEntry do
     expect {
       described_class.call(description: "bad", currency: "EUR", lines: [
         { account: cash,   direction: "debit",  amount: 100 },
-        { account: wallet, direction: "credit", amount: 50 },
+        { account: wallet, direction: "credit", amount: 50 }
       ])
     }.to raise_error(Ledger::UnbalancedEntry)
   end
@@ -34,7 +34,7 @@ RSpec.describe Ledger::PostEntry do
     expect {
       described_class.call(description: "bad", currency: "EUR", lines: [
         { account: cash, direction: "debit", amount: 100 },
-        { account: usd,  direction: "credit", amount: 100 },
+        { account: usd,  direction: "credit", amount: 100 }
       ])
     }.to raise_error(Ledger::CurrencyMismatch)
   end

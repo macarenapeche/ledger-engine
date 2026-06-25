@@ -12,7 +12,7 @@ class CreateAccounts < ActiveRecord::Migration[7.2]
 
     add_index :accounts, :external_id, unique: true
     # A holder gets at most one account per currency: "wallet_1" holds EUR and USD as two rows.
-    add_index :accounts, [:holder_ref, :currency], unique: true
+    add_index :accounts, [ :holder_ref, :currency ], unique: true
     add_check_constraint :accounts, "normal_balance IN ('debit','credit')", name: "accounts_normal_balance_valid"
     add_check_constraint :accounts, "currency ~ '^[A-Z]{3}$'", name: "accounts_currency_iso"
   end

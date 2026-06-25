@@ -10,6 +10,6 @@ class CreateBalanceSnapshots < ActiveRecord::Migration[7.2]
     end
 
     # One snapshot per (account, high-water mark): re-running capture is idempotent.
-    add_index :balance_snapshots, [:account_id, :last_posting_id], unique: true
+    add_index :balance_snapshots, [ :account_id, :last_posting_id ], unique: true
   end
 end
