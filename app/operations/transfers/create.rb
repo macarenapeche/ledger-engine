@@ -32,11 +32,11 @@ module Transfers
 
     private
 
-      attr_reader :from, :to, :amount, :currency, :idempotency_key, :allow_overdraft
+    attr_reader :from, :to, :amount, :currency, :idempotency_key, :allow_overdraft
 
-      def resolve(holder_ref)
-        Account.find_by(holder_ref:, currency:) ||
-          raise(Ledger::AccountNotFound, "no #{currency} account for #{holder_ref}")
-      end
+    def resolve(holder_ref)
+      Account.find_by(holder_ref:, currency:) ||
+        raise(Ledger::AccountNotFound, "no #{currency} account for #{holder_ref}")
+    end
   end
 end

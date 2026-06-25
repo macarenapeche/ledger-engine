@@ -20,6 +20,6 @@ module BalanceSnapshots
 
     private
 
-      attr_reader :account
+    attr_reader :account
   end
 end

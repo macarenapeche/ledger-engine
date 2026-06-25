@@ -8,6 +8,6 @@ class ApplicationController < ActionController::API
 
   private
 
-    def not_found(error) = render json: { error: error.message }, status: :not_found
-    def unprocessable(error) = render json: { error: error.message }, status: :unprocessable_entity
+  def not_found(error) = render json: { error: error.message }, status: :not_found
+  def unprocessable(error) = render json: { error: error.message }, status: :unprocessable_entity
 end

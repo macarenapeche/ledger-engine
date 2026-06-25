@@ -15,16 +15,16 @@ class TransfersController < ApplicationController
 
   private
 
-    def serialize(entry)
-      {
-        id: entry.id,
-        description: entry.description,
-        currency: entry.currency,
-        idempotency_key: entry.idempotency_key,
-        occurred_at: entry.occurred_at,
-        postings: entry.postings.map { |p|
-          { account: p.account.external_id, direction: p.direction, amount: p.amount }
-        }
+  def serialize(entry)
+    {
+      id: entry.id,
+      description: entry.description,
+      currency: entry.currency,
+      idempotency_key: entry.idempotency_key,
+      occurred_at: entry.occurred_at,
+      postings: entry.postings.map { |p|
+        { account: p.account.external_id, direction: p.direction, amount: p.amount }
       }
-    end
+    }
+  end
 end

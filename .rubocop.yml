@@ -30,5 +30,7 @@ Layout/IndentationStyle:
 Layout/IndentationWidth:
   Enabled: true
   Width: 2
+# Don't indent methods under `private` (omakase defaults to indented_internal_methods).
 Layout/IndentationConsistency:
   Enabled: true
+  EnforcedStyle: normal
