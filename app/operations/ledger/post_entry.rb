@@ -44,45 +44,45 @@ module Ledger
 
     private
 
-    attr_reader :description, :currency, :idempotency_key, :lines, :no_overdraft, :occurred_at, :metadata
+      attr_reader :description, :currency, :idempotency_key, :lines, :no_overdraft, :occurred_at, :metadata
 
-    def validate_balanced!
-      debits  = lines.select { _1.direction == "debit" }.sum(&:amount)
-      credits = lines.select { _1.direction == "credit" }.sum(&:amount)
-      raise UnbalancedEntry, "debits (#{debits}) != credits (#{credits})" unless debits == credits
-      raise UnbalancedEntry, "need at least 2 postings" if lines.size < 2
+      def validate_balanced!
+        debits  = lines.select { _1.direction == "debit" }.sum(&:amount)
+        credits = lines.select { _1.direction == "credit" }.sum(&:amount)
+        raise UnbalancedEntry, "debits (#{debits}) != credits (#{credits})" unless debits == credits
+        raise UnbalancedEntry, "need at least 2 postings" if lines.size < 2
 
-      mismatched = lines.map { _1.account.currency }.uniq - [ currency ]
-      raise CurrencyMismatch, "all postings must be in #{currency}" unless mismatched.empty?
-    end
-
-    def existing_by_idempotency_key
-      idempotency_key && JournalEntry.find_by(idempotency_key: idempotency_key)
-    end
-
-    # Lock involved accounts in a stable order (by id) so concurrent transfers can't deadlock.
-    def lock_accounts!
-      Account.where(id: lines.map { _1.account.id }).order(:id).lock.load
-    end
-
-    def guard_overdrafts!
-      no_overdraft.each do |account|
-        debited = lines.select { _1.account.id == account.id }.sum { _1.direction == "debit" ? _1.amount : -_1.amount }
-        # debiting a credit-normal (liability) account lowers its balance
-        projected = account.balance - (account.normal_balance == "credit" ? debited : -debited)
-        raise InsufficientFunds, "#{account.external_id} would go negative (#{projected})" if projected.negative?
+        mismatched = lines.map { _1.account.currency }.uniq - [ currency ]
+        raise CurrencyMismatch, "all postings must be in #{currency}" unless mismatched.empty?
       end
-    end
 
-    def write_entry!
-      entry = JournalEntry.create!(
-        description: description, currency: currency,
-        idempotency_key: idempotency_key, occurred_at: occurred_at, metadata: metadata
-      )
-      lines.each do |l|
-        entry.postings.create!(account: l.account, direction: l.direction, amount: l.amount, currency: currency)
+      def existing_by_idempotency_key
+        idempotency_key && JournalEntry.find_by(idempotency_key:)
       end
-      entry
-    end
+
+      # Lock involved accounts in a stable order (by id) so concurrent transfers can't deadlock.
+      def lock_accounts!
+        Account.where(id: lines.map { _1.account.id }).order(:id).lock.load
+      end
+
+      def guard_overdrafts!
+        no_overdraft.each do |account|
+          debited = lines.select { _1.account.id == account.id }.sum { _1.direction == "debit" ? _1.amount : -_1.amount }
+          # debiting a credit-normal (liability) account lowers its balance
+          projected = account.balance - (account.normal_balance == "credit" ? debited : -debited)
+          raise InsufficientFunds, "#{account.external_id} would go negative (#{projected})" if projected.negative?
+        end
+      end
+
+      def write_entry!
+        entry = JournalEntry.create!(
+          description:, currency:,
+          idempotency_key:, occurred_at:, metadata:
+        )
+        lines.each do |l|
+          entry.postings.create!(account: l.account, direction: l.direction, amount: l.amount, currency:)
+        end
+        entry
+      end
   end
 end

@@ -20,23 +20,23 @@ module Transfers
 
       Ledger::PostEntry.call(
         description: "transfer #{from} -> #{to}",
-        currency: currency,
-        idempotency_key: idempotency_key,
+        currency:,
+        idempotency_key:,
         no_overdraft: allow_overdraft ? [] : [ source ],
         lines: [
-          { account: source,      direction: "debit",  amount: amount },
-          { account: destination, direction: "credit", amount: amount }
+          { account: source,      direction: "debit",  amount: },
+          { account: destination, direction: "credit", amount: }
         ]
       )
     end
 
     private
 
-    attr_reader :from, :to, :amount, :currency, :idempotency_key, :allow_overdraft
+      attr_reader :from, :to, :amount, :currency, :idempotency_key, :allow_overdraft
 
-    def resolve(holder_ref)
-      Account.find_by(holder_ref: holder_ref, currency: currency) ||
-        raise(Ledger::AccountNotFound, "no #{currency} account for #{holder_ref}")
-    end
+      def resolve(holder_ref)
+        Account.find_by(holder_ref:, currency:) ||
+          raise(Ledger::AccountNotFound, "no #{currency} account for #{holder_ref}")
+      end
   end
 end

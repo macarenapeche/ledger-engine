@@ -14,9 +14,9 @@ class Posting < ApplicationRecord
 
   private
 
-  def currency_matches_account
-    return if account.nil? || currency == account.currency
+    def currency_matches_account
+      return if account.nil? || currency == account.currency
 
-    errors.add(:currency, "must match the account currency (#{account.currency})")
-  end
+      errors.add(:currency, "must match the account currency (#{account.currency})")
+    end
 end

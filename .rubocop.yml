@@ -10,3 +10,25 @@ Ledger/NoInstanceVariableOutsideInitialize:
   Enabled: true
   Include:
     - "app/operations/**/*.rb"
+
+# Prefer hash shorthand: `currency:` not `currency: currency`.
+Style/HashSyntax:
+  EnforcedShorthandSyntax: always
+
+# Keep methods small (omakase disables Metrics wholesale). Migrations are linear
+# scripts with inline SQL heredocs — not logic to keep short — so they're exempt.
+Metrics/MethodLength:
+  Enabled: true
+  Max: 15
+  Exclude:
+    - "db/migrate/**/*"
+
+# Indentation: spaces only, two-space width — no hard tabs.
+Layout/IndentationStyle:
+  Enabled: true
+  EnforcedStyle: spaces
+Layout/IndentationWidth:
+  Enabled: true
+  Width: 2
+Layout/IndentationConsistency:
+  Enabled: true

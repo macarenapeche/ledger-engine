@@ -11,7 +11,7 @@ module BalanceSnapshots
 
     def call
       hwm = account.postings.maximum(:id) || 0
-      BalanceSnapshot.find_or_create_by!(account: account, last_posting_id: hwm) do |s|
+      BalanceSnapshot.find_or_create_by!(account:, last_posting_id: hwm) do |s|
         s.balance = account.balance(as_of_posting_id: hwm)
         s.postings_count = account.postings.where("id <= ?", hwm).count
         s.captured_at = Time.current
@@ -20,6 +20,6 @@ module BalanceSnapshots
 
     private
 
-    attr_reader :account
+      attr_reader :account
   end
 end
