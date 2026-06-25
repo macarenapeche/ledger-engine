@@ -1,8 +1,36 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+require:
+  - ./lib/rubocop/cop/ledger/no_instance_var_outside_initialize.rb
+
+# House style: in operation/service classes, reference constructor args through a private
+# attr_reader, never @ivars after initialize.
+Ledger/NoInstanceVariableOutsideInitialize:
+  Enabled: true
+  Include:
+    - "app/operations/**/*.rb"
+
+# Prefer hash shorthand: `currency:` not `currency: currency`.
+Style/HashSyntax:
+  EnforcedShorthandSyntax: always
+
+# Keep methods small (omakase disables Metrics wholesale). Migrations are linear
+# scripts with inline SQL heredocs — not logic to keep short — so they're exempt.
+Metrics/MethodLength:
+  Enabled: true
+  Max: 15
+  Exclude:
+    - "db/migrate/**/*"
+
+# Indentation: spaces only, two-space width — no hard tabs.
+Layout/IndentationStyle:
+  Enabled: true
+  EnforcedStyle: spaces
+Layout/IndentationWidth:
+  Enabled: true
+  Width: 2
+# Don't indent methods under `private` (omakase defaults to indented_internal_methods).
+Layout/IndentationConsistency:
+  Enabled: true
+  EnforcedStyle: normal

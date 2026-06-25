@@ -26,7 +26,8 @@ module LedgerEngine
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    # rubocop/ holds a custom cop loaded only by RuboCop, not the app — keep Zeitwerk off it.
+    config.autoload_lib(ignore: %w[assets tasks rubocop])
 
     # Configuration for the application, engines, and railties goes here.
     #

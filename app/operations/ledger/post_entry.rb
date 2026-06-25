@@ -57,7 +57,7 @@ module Ledger
     end
 
     def existing_by_idempotency_key
-      idempotency_key && JournalEntry.find_by(idempotency_key: idempotency_key)
+      idempotency_key && JournalEntry.find_by(idempotency_key:)
     end
 
     # Lock involved accounts in a stable order (by id) so concurrent transfers can't deadlock.
@@ -76,11 +76,11 @@ module Ledger
 
     def write_entry!
       entry = JournalEntry.create!(
-        description: description, currency: currency,
-        idempotency_key: idempotency_key, occurred_at: occurred_at, metadata: metadata
+        description:, currency:,
+        idempotency_key:, occurred_at:, metadata:
       )
       lines.each do |l|
-        entry.postings.create!(account: l.account, direction: l.direction, amount: l.amount, currency: currency)
+        entry.postings.create!(account: l.account, direction: l.direction, amount: l.amount, currency:)
       end
       entry
     end
