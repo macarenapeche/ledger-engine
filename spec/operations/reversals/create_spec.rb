@@ -29,7 +29,8 @@ RSpec.describe Reversals::Create do
 
   it "records the link back to the reversed entry" do
     reversal = described_class.call(original)
-    expect(reversal.metadata["reverses"]).to eq(original.id)
+    expect(reversal.reverses_entry_id).to eq(original.id)
+    expect(reversal).to be_reversal
   end
 
   it "is reverse-once: reversing twice returns the same reversal, no double-undo" do
@@ -53,6 +54,19 @@ RSpec.describe Reversals::Create do
   it "refuses to reverse a reversal — chains are capped at one level" do
     reversal = described_class.call(original)
     expect { described_class.call(reversal) }.to raise_error(Ledger::IrreversibleEntry)
+  end
+
+  it "is not poisoned by a client idempotency key shaped like a reversal key" do
+    # A transfer claiming the old-style "reversal-of-N" key must not be mistaken for the reversal.
+    w2 = account!("wallet_2_eur", holder: "wallet_2")
+    described_class # ensure original posted
+    original
+    Transfers::Create.call(from: "wallet_1", to: "wallet_2", amount: 1, currency: "EUR",
+                           idempotency_key: "reversal-of-#{original.id}")
+
+    reversal = described_class.call(original)
+    expect(reversal.reverses_entry_id).to eq(original.id) # a real reversal, not the transfer
+    expect(reversal).not_to eq(original)
   end
 
   it "lets you re-apply via a fresh entry instead of un-reversing" do

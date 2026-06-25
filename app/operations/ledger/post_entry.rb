@@ -18,7 +18,7 @@ module Ledger
 
     def self.call(...) = new(...).call
 
-    def initialize(description:, currency:, lines:, idempotency_key: nil, no_overdraft: [], occurred_at: nil, metadata: {})
+    def initialize(description:, currency:, lines:, idempotency_key: nil, no_overdraft: [], occurred_at: nil, metadata: {}, reverses_entry: nil)
       @description = description
       @currency = currency
       @idempotency_key = idempotency_key
@@ -26,6 +26,7 @@ module Ledger
       @no_overdraft = no_overdraft
       @occurred_at = occurred_at || Time.current
       @metadata = metadata
+      @reverses_entry = reverses_entry
     end
 
     def call
@@ -44,7 +45,7 @@ module Ledger
 
     private
 
-    attr_reader :description, :currency, :idempotency_key, :lines, :no_overdraft, :occurred_at, :metadata
+    attr_reader :description, :currency, :idempotency_key, :lines, :no_overdraft, :occurred_at, :metadata, :reverses_entry
 
     def validate_balanced!
       debits  = lines.select { _1.direction == "debit" }.sum(&:amount)
@@ -76,7 +77,7 @@ module Ledger
 
     def write_entry!
       entry = JournalEntry.create!(
-        description: description, currency: currency,
+        description: description, currency: currency, reverses_entry: reverses_entry,
         idempotency_key: idempotency_key, occurred_at: occurred_at, metadata: metadata
       )
       lines.each do |l|

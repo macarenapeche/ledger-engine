@@ -3,9 +3,11 @@ module Reversals
   # Each leg's direction is flipped (debit <-> credit), amounts unchanged. Because the
   # original was balanced, the reversal is balanced too.
   #
-  # Reverse-once: the idempotency key is derived from the original id, so reversing the same
-  # entry twice returns the first reversal instead of posting a second one. A reversal entry
-  # itself cannot be reversed, so chains are capped at one level (original -> reversal).
+  # Reverse-once and chain-capping are both structural, via the reverses_entry link:
+  #   - one reversal per original entry is enforced by a unique index (DB-level), not a
+  #     magic idempotency key sharing a namespace with client requests
+  #   - a reversal entry (reverses_entry_id set) cannot itself be reversed -> chains are
+  #     capped at one level (original -> reversal)
   class Create
     FLIP = { "debit" => "credit", "credit" => "debit" }.freeze
 
@@ -16,21 +18,26 @@ module Reversals
     end
 
     def call
-      if original.metadata["reverses"].present?
+      if original.reversal?
         raise Ledger::IrreversibleEntry,
-          "entry #{original.id} is itself a reversal (of #{original.metadata['reverses']}) and cannot be reversed"
+          "entry #{original.id} is itself a reversal (of #{original.reverses_entry_id}) and cannot be reversed"
       end
+
+      existing = original.reversal
+      return existing if existing
 
       Ledger::PostEntry.call(
         description: "reversal of entry #{original.id}",
         currency: original.currency,
-        idempotency_key: "reversal-of-#{original.id}",
+        reverses_entry: original,
         no_overdraft: [], # a correction must always post, even if it drives a balance negative
-        metadata: { "reverses" => original.id },
         lines: original.postings.map { |p|
           { account: p.account, direction: FLIP.fetch(p.direction), amount: p.amount }
         }
       )
+    rescue ActiveRecord::RecordNotUnique
+      # Lost the reverse-once race: another request just created the reversal. Return it.
+      original.reload.reversal or raise
     end
 
     private

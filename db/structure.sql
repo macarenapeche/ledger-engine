@@ -155,6 +155,7 @@ CREATE TABLE public.journal_entries (
     metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
+    reverses_entry_id bigint,
     CONSTRAINT journal_entries_currency_iso CHECK (((currency)::text ~ '^[A-Z]{3}$'::text))
 );
 
@@ -340,6 +341,20 @@ CREATE UNIQUE INDEX index_journal_entries_on_idempotency_key ON public.journal_e
 
 
 --
+-- Name: index_journal_entries_on_reverses_entry_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_journal_entries_on_reverses_entry_id ON public.journal_entries USING btree (reverses_entry_id);
+
+
+--
+-- Name: index_journal_entries_one_reversal_per_entry; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_journal_entries_one_reversal_per_entry ON public.journal_entries USING btree (reverses_entry_id) WHERE (reverses_entry_id IS NOT NULL);
+
+
+--
 -- Name: index_postings_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -398,6 +413,14 @@ ALTER TABLE ONLY public.postings
 
 
 --
+-- Name: journal_entries fk_rails_a76617785a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.journal_entries
+    ADD CONSTRAINT fk_rails_a76617785a FOREIGN KEY (reverses_entry_id) REFERENCES public.journal_entries(id);
+
+
+--
 -- Name: balance_snapshots fk_rails_cfe2988228; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -412,6 +435,7 @@ ALTER TABLE ONLY public.balance_snapshots
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260625000006'),
 ('20260625000005'),
 ('20260625000004'),
 ('20260625000003'),
