@@ -4,5 +4,4 @@ module Ledger
   class InsufficientFunds < Error; end
   class AccountNotFound < Error; end
   class CurrencyMismatch < Error; end
-  class IrreversibleEntry < Error; end
 end

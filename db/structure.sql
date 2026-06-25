@@ -156,6 +156,7 @@ CREATE TABLE public.journal_entries (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     reverses_entry_id bigint,
+    originator_id bigint,
     CONSTRAINT journal_entries_currency_iso CHECK (((currency)::text ~ '^[A-Z]{3}$'::text))
 );
 
@@ -341,6 +342,13 @@ CREATE UNIQUE INDEX index_journal_entries_on_idempotency_key ON public.journal_e
 
 
 --
+-- Name: index_journal_entries_on_originator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_journal_entries_on_originator_id ON public.journal_entries USING btree (originator_id);
+
+
+--
 -- Name: index_journal_entries_on_reverses_entry_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -405,6 +413,14 @@ ALTER TABLE ONLY public.postings
 
 
 --
+-- Name: journal_entries fk_rails_5685e80cec; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.journal_entries
+    ADD CONSTRAINT fk_rails_5685e80cec FOREIGN KEY (originator_id) REFERENCES public.journal_entries(id);
+
+
+--
 -- Name: postings fk_rails_9e48d90554; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -435,6 +451,7 @@ ALTER TABLE ONLY public.balance_snapshots
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260625000007'),
 ('20260625000006'),
 ('20260625000005'),
 ('20260625000004'),

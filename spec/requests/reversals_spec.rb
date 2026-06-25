@@ -27,9 +27,13 @@ RSpec.describe "POST /journal_entries/:id/reversals", type: :request do
     expect(response).to have_http_status(:not_found)
   end
 
-  it "returns 422 when trying to reverse a reversal" do
+  it "reverses a reversal, linking back to the originator" do
     reversal = Reversals::Create.call(entry)
     post "/journal_entries/#{reversal.id}/reversals"
-    expect(response).to have_http_status(:unprocessable_entity)
+
+    expect(response).to have_http_status(:created)
+    body = JSON.parse(response.body)
+    expect(body["reverses"]).to eq(reversal.id)   # immediate parent
+    expect(body["originator"]).to eq(entry.id)    # root of the chain
   end
 end

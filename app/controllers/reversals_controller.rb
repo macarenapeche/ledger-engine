@@ -8,6 +8,7 @@ class ReversalsController < ApplicationController
     render json: {
       id: reversal.id,
       reverses: reversal.reverses_entry_id,
+      originator: reversal.originator_id,
       description: reversal.description,
       currency: reversal.currency,
       occurred_at: reversal.occurred_at,

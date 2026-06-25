@@ -3,11 +3,11 @@ module Reversals
   # Each leg's direction is flipped (debit <-> credit), amounts unchanged. Because the
   # original was balanced, the reversal is balanced too.
   #
-  # Reverse-once and chain-capping are both structural, via the reverses_entry link:
-  #   - one reversal per original entry is enforced by a unique index (DB-level), not a
-  #     magic idempotency key sharing a namespace with client requests
-  #   - a reversal entry (reverses_entry_id set) cannot itself be reversed -> chains are
-  #     capped at one level (original -> reversal)
+  # Reverse-once is structural, via the reverses_entry link: a unique index enforces one
+  # reversal per original entry at the DB level (not a magic idempotency key sharing a
+  # namespace with client requests). A reversal is itself a normal, linked entry, so it can
+  # be reversed in turn — that forms an auditable chain (X -> R1 -> R2 ...), each entry still
+  # reverse-once, no cycles.
   class Create
     FLIP = { "debit" => "credit", "credit" => "debit" }.freeze
 
@@ -18,11 +18,6 @@ module Reversals
     end
 
     def call
-      if original.reversal?
-        raise Ledger::IrreversibleEntry,
-          "entry #{original.id} is itself a reversal (of #{original.reverses_entry_id}) and cannot be reversed"
-      end
-
       existing = original.reversal
       return existing if existing
 

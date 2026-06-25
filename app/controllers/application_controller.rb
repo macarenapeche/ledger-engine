@@ -4,7 +4,6 @@ class ApplicationController < ActionController::API
   rescue_from Ledger::InsufficientFunds, with: :unprocessable
   rescue_from Ledger::UnbalancedEntry, with: :unprocessable
   rescue_from Ledger::CurrencyMismatch, with: :unprocessable
-  rescue_from Ledger::IrreversibleEntry, with: :unprocessable
   rescue_from ActiveRecord::RecordInvalid, with: :unprocessable
 
   private
